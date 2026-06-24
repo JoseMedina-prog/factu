@@ -59,11 +59,13 @@
             </a>
         @endcan
 
-        <a href="{{ route('accounts-receivable.index') }}"
-           class="nav-link {{ request()->routeIs('accounts-receivable.*') ? 'nav-link-active' : '' }}">
-            <x-icon name="invoice" class="w-5 h-5" />
-            Por cobrar
-        </a>
+        @can('viewAny', App\Models\Payment::class)
+            <a href="{{ route('accounts-receivable.index') }}"
+               class="nav-link {{ request()->routeIs('accounts-receivable.*') ? 'nav-link-active' : '' }}">
+                <x-icon name="invoice" class="w-5 h-5" />
+                Por cobrar
+            </a>
+        @endcan
 
         <a href="{{ route('inventory.index') }}"
            class="nav-link {{ request()->routeIs('inventory.*') ? 'nav-link-active' : '' }}">
