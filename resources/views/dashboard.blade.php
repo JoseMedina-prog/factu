@@ -3,11 +3,21 @@
 @section('title', 'Dashboard')
 
 @section('content')
+@php
+    $hour = (int) now()->format('H');
+    $greeting = match (true) {
+        $hour < 12 => 'Buenos días',
+        $hour < 19 => 'Buenas tardes',
+        default => 'Buenas noches',
+    };
+    $userName = auth()->user()->name ?? '';
+    $firstName = explode(' ', trim($userName))[0];
+@endphp
 <div class="space-y-6">
     <div class="page-header">
         <div class="page-header-actions">
             <div>
-                <h1 class="page-title">Buenos días</h1>
+                <h1 class="page-title">{{ $greeting }}{{ $firstName ? ', ' . $firstName : '' }}</h1>
                 <p class="page-subtitle">Aquí está un resumen de tu actividad</p>
             </div>
             <a href="{{ route('invoices.create') }}" class="btn btn-primary px-5 py-2.5 text-sm font-semibold rounded-lg shadow-md">

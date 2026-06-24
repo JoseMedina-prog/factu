@@ -115,9 +115,8 @@ class SupplierService
             ->where('tenant_id', $tenantId)
             ->whereIn('payment_status', ['unpaid', 'partial', 'overpaid'])
             ->where('status', PurchaseInvoice::STATUS_RECEIVED)
-            ->whereNotNull('due_date')
             ->with('supplier:id,name,document,email,phone')
-            ->orderBy('due_date')
+            ->orderByRaw('due_date IS NULL, due_date ASC')
             ->get();
 
         $grouped = [
@@ -140,7 +139,8 @@ class SupplierService
         $bySupplier = [];
 
         foreach ($invoices as $invoice) {
-            $isOverdue = $invoice->due_date->lt($asOf);
+            $hasDueDate = $invoice->due_date !== null;
+            $isOverdue = $hasDueDate && $invoice->due_date->lt($asOf);
             $key = $isOverdue ? $invoice->agingBucket() : 'current';
             $grouped[$key] = $grouped[$key] ?? collect();
             $grouped[$key]->push($invoice);

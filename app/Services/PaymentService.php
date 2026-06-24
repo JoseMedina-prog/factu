@@ -16,14 +16,22 @@ class PaymentService
             $data = $request->validate($this->rules($invoice));
 
             if ((float) $data['amount'] <= 0) {
-                throw new \InvalidArgumentException('El monto del pago debe ser mayor a cero.');
+                throw new \InvalidArgumentException(
+                    "El monto del pago debe ser mayor a cero. Recibido: \${$data['amount']}."
+                );
             }
 
             $remaining = (float) $invoice->total - (float) $invoice->paid_amount;
 
+            if ($invoice->isFullyPaid()) {
+                throw new \InvalidArgumentException(
+                    "La factura {$invoice->number} ya está pagada completamente. No se pueden registrar más pagos."
+                );
+            }
+
             if ((float) $data['amount'] > $remaining + 0.01) {
                 throw new \InvalidArgumentException(
-                    "El pago (\${$data['amount']}) supera el saldo pendiente de la factura (\${$remaining})."
+                    "El pago (\${$data['amount']}) supera el saldo pendiente de la factura {$invoice->number} (\${$remaining})."
                 );
             }
 
@@ -177,9 +185,8 @@ class PaymentService
             ->where('tenant_id', $tenantId)
             ->whereIn('payment_status', ['unpaid', 'partial', 'overpaid'])
             ->whereIn('status', ['approved', 'sent'])
-            ->whereNotNull('due_date')
             ->with('client:id,name,document,email,phone')
-            ->orderBy('due_date')
+            ->orderByRaw('due_date IS NULL, due_date ASC')
             ->get();
 
         $grouped = [
@@ -202,13 +209,12 @@ class PaymentService
         $byClient = [];
 
         foreach ($invoices as $invoice) {
-            $isOverdue = $invoice->due_date->lt($asOf);
+            $hasDueDate = $invoice->due_date !== null;
+            $isOverdue = $hasDueDate && $invoice->due_date->lt($asOf);
             $key = $isOverdue ? $invoice->agingBucket() : 'current';
-            if (!isset($grouped[$key])) {
-                $grouped[$key] = collect();
-            }
+            $grouped[$key] = $grouped[$key] ?? collect();
             $grouped[$key]->push($invoice);
-            $totals[$key] += (float) $invoice->balance;
+            $totals[$key] = ($totals[$key] ?? 0) + (float) $invoice->balance;
             $totals['total'] += (float) $invoice->balance;
 
             $clientKey = $invoice->client_id;
@@ -227,12 +233,13 @@ class PaymentService
             }
         }
 
+        $byClient = array_values($byClient);
         usort($byClient, fn ($a, $b) => $b['total'] <=> $a['total']);
 
         return [
             'groups' => $grouped,
             'totals' => $totals,
-            'by_client' => array_values($byClient),
+            'by_client' => $byClient,
             'as_of' => $asOf->toDateString(),
             'invoice_count' => $invoices->count(),
             'client_count' => count($byClient),

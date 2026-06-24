@@ -94,11 +94,6 @@ class Invoice extends Model
         return $query->where('status', 'draft');
     }
 
-    public function scopePending(Builder $query): Builder
-    {
-        return $query->where('status', 'pending');
-    }
-
     public function scopeSent(Builder $query): Builder
     {
         return $query->where('status', 'sent');

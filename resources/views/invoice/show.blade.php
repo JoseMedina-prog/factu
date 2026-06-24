@@ -155,27 +155,8 @@
                 </button>
             @endif
 
-            @if(!$invoice->reference_code)
-                @can('update', $invoice)
-                <a href="{{ route('invoices.edit', $invoice) }}" class="btn btn-outline">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                    Editar
-                </a>
-                @endcan
-
-                @can('delete', $invoice)
-                <button type="button"
-                        @click="localDeleteUrl = '{{ route('invoices.destroy', $invoice) }}'; openLocalDelete = true"
-                        class="btn btn-outline text-red-600 hover:bg-red-50 hover:border-red-300">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a2 2 0 012-2h2a2 2 0 012 2v3"/>
-                    </svg>
-                    Eliminar local
-                </button>
-                @endcan
-            @endif
+            {{-- Bloque consolidado: Editar y Eliminar local solo aparecen
+                 cuando la factura aún no ha sido validada por la DIAN. --}}
         </div>
     </div>
 

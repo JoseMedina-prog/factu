@@ -24,6 +24,7 @@ class PurchaseInvoiceController extends Controller
         $this->authorize('viewAny', PurchaseInvoice::class);
 
         $purchases = PurchaseInvoice::with(['supplier:id,name,document', 'creator:id,name'])
+            ->when($request->search, fn ($q) => $q->where('number', 'like', '%' . $request->search . '%'))
             ->when($request->supplier_id, fn ($q) => $q->where('supplier_id', $request->supplier_id))
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->payment_status, fn ($q) => $q->where('payment_status', $request->payment_status))

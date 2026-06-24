@@ -32,7 +32,7 @@ class InvoicePolicy
             return false;
         }
 
-        return !in_array($invoice->status, ['approved', 'cancelled']);
+        return in_array($invoice->status, ['draft', 'pending']);
     }
 
     public function delete(User $user, Invoice $invoice): bool
@@ -65,7 +65,7 @@ class InvoicePolicy
         return in_array($invoice->status, ['draft', 'pending', 'sent']);
     }
 
-    public function cancel(User $user, Invoice $invoice): bool
+    public function deleteFromFactus(User $user, Invoice $invoice): bool
     {
         if ($user->tenant_id !== $invoice->tenant_id) {
             return false;
@@ -76,5 +76,14 @@ class InvoicePolicy
         }
 
         return $invoice->status !== 'cancelled';
+    }
+
+    /**
+     * Alias de deleteFromFactus para compatibilidad con código que aún usa
+     * el nombre anterior. Mantener hasta migrar todos los call sites.
+     */
+    public function cancel(User $user, Invoice $invoice): bool
+    {
+        return $this->deleteFromFactus($user, $invoice);
     }
 }

@@ -131,6 +131,20 @@ class Product extends Model
         return (float) $this->stock * (float) $this->cost;
     }
 
+    /**
+     * Costo unitario promedio del producto.
+     *
+     * Se actualiza automáticamente al recibir una compra (SupplierService::recordPurchase)
+     * pasando el unit_price * (1 + tax%) como costo. Para entradas manuales de inventario
+     * (InventoryService::registerEntry) también se sobrescribe si se pasa unitCost.
+     *
+     * Se usa para valoración de inventario y cálculo del stock total.
+     */
+    public function getAverageCostAttribute(): float
+    {
+        return (float) $this->cost;
+    }
+
     public function getUnitOfMeasureLabelAttribute(): string
     {
         return self::UNITS[$this->unit_of_measure] ?? $this->unit_of_measure;

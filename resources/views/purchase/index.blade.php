@@ -35,6 +35,9 @@
     <div class="p-4 border-b border-slate-100">
         <form method="GET" class="flex flex-wrap gap-3">
             <div class="flex-1 min-w-[180px]">
+                <x-input name="search" placeholder="Buscar por número..." :value="request('search')" />
+            </div>
+            <div class="flex-1 min-w-[180px]">
                 <x-input name="from" type="date" :value="request('from')" />
             </div>
             <div class="flex-1 min-w-[180px]">
@@ -49,6 +52,9 @@
                 class="w-auto"
             />
             <button type="submit" class="btn btn-outline">Filtrar</button>
+            @if(request()->hasAny(['search', 'from', 'to', 'supplier_id', 'payment_status']))
+                <a href="{{ route('purchases.index') }}" class="btn btn-ghost">Limpiar</a>
+            @endif
         </form>
     </div>
 

@@ -16,14 +16,22 @@ class PurchasePaymentService
             $data = $request->validate($this->rules($invoice));
 
             if ((float) $data['amount'] <= 0) {
-                throw new \InvalidArgumentException('El monto del pago debe ser mayor a cero.');
+                throw new \InvalidArgumentException(
+                    "El monto del pago debe ser mayor a cero. Recibido: \${$data['amount']}."
+                );
             }
 
             $remaining = (float) $invoice->total - (float) $invoice->paid_amount;
 
+            if ($invoice->isFullyPaid()) {
+                throw new \InvalidArgumentException(
+                    "La factura {$invoice->number} ya está pagada completamente. No se pueden registrar más pagos."
+                );
+            }
+
             if ((float) $data['amount'] > $remaining + 0.01) {
                 throw new \InvalidArgumentException(
-                    "El pago (\${$data['amount']}) supera el saldo pendiente de la factura (\${$remaining})."
+                    "El pago (\${$data['amount']}) supera el saldo pendiente de la factura {$invoice->number} (\${$remaining})."
                 );
             }
 

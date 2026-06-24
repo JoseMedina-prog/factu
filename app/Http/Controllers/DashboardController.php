@@ -114,7 +114,8 @@ class DashboardController extends Controller
         $tenantId = auth()->user()->tenant_id;
 
         $overdueInvoices = Invoice::where('tenant_id', $tenantId)
-            ->whereIn('status', ['pending', 'sent'])
+            ->whereIn('status', ['pending', 'sent', 'approved'])
+            ->whereNotNull('due_date')
             ->where('due_date', '<', now()->toDateString())
             ->count();
 

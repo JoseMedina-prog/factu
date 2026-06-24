@@ -30,9 +30,11 @@ class InvoiceController extends Controller
     {
         $invoices = Invoice::with('client')
             ->when($request->status, fn($q) => $q->where('status', $request->status))
+            ->when($request->client_id, fn($q) => $q->where('client_id', $request->client_id))
             ->when($request->search, fn($q) => $q->where('number', 'like', '%' . $request->search . '%'))
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         $stats = $this->invoiceService->getInvoiceStats();
 
@@ -151,8 +153,17 @@ class InvoiceController extends Controller
                 ->with('factus_block_reason', 'notified');
         }
 
+        \Illuminate\Support\Facades\Log::error('Factus deleteInvoice failed', [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->number,
+            'tenant_id' => $invoice->tenant_id,
+            'result' => $result,
+        ]);
+
+        $userMessage = $result['message']
+            ?? 'No pudimos comunicarnos con Factus. Intenta nuevamente en unos minutos.';
         return redirect()->route('invoices.show', $invoice)
-            ->with('error', 'No se pudo eliminar: ' . ($result['message'] ?? 'Error desconocido'));
+            ->with('error', 'No se pudo eliminar: ' . $userMessage);
     }
 
     public function refreshStatus(Request $request, Invoice $invoice): RedirectResponse

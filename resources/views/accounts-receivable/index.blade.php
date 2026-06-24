@@ -89,12 +89,18 @@
                                         <p class="text-xs text-slate-500">{{ $invoice->client->phone }}</p>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4">{{ $invoice->due_date->format('d/m/Y') }}</td>
+                                <td class="px-6 py-4">
+                                    @if($invoice->due_date)
+                                        {{ $invoice->due_date->format('d/m/Y') }}
+                                    @else
+                                        <span class="text-slate-400 text-xs">Sin vencimiento</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 text-right">
                                     @if($invoice->daysOverdue() > 0)
                                         <span class="font-semibold text-red-600">{{ $invoice->daysOverdue() }}</span>
                                     @else
-                                        <span class="text-slate-400">0</span>
+                                        <span class="text-slate-400">{{ $invoice->due_date ? '0' : '—' }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right font-semibold">${{ number_format($invoice->balance, 0, ',', '.') }}</td>

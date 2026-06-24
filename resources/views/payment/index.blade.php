@@ -93,6 +93,7 @@
                     <th class="px-6 py-3 text-left">Método</th>
                     <th class="px-6 py-3 text-left">Referencia</th>
                     <th class="px-6 py-3 text-left">Estado</th>
+                    <th class="px-6 py-3 text-left">Registrado por</th>
                     <th class="px-6 py-3 text-right">Acciones</th>
                 </tr>
             </thead>
@@ -126,6 +127,12 @@
                                 {{ ucfirst($payment->status) }}
                             </x-badge>
                         </td>
+                        <td class="px-6 py-4 text-xs text-slate-600">
+                            {{ $payment->creator->name ?? '—' }}
+                            @if($payment->created_at)
+                                <br><span class="text-slate-400">{{ $payment->created_at->diffForHumans() }}</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-right space-x-2">
                             @can('view', $payment)
                                 <a href="{{ route('payments.show', $payment) }}" class="text-blue-600 hover:underline text-xs">Ver</a>
@@ -140,7 +147,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-12 text-center text-slate-500">
+                        <td colspan="9" class="px-6 py-12 text-center text-slate-500">
                             No hay pagos registrados.
                         </td>
                     </tr>

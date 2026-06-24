@@ -41,7 +41,7 @@ class PaymentController extends Controller
         return view('payment.index', compact('payments', 'stats'));
     }
 
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
         $this->authorize('create', Payment::class);
 
@@ -51,6 +51,12 @@ class PaymentController extends Controller
         if ($request->invoice_id) {
             $invoice = Invoice::with('client')->findOrFail($request->invoice_id);
             $this->authorize('view', $invoice);
+
+            if ($invoice->isFullyPaid()) {
+                return redirect()
+                    ->route('invoices.show', $invoice)
+                    ->with('info', "La factura {$invoice->number} ya está pagada completamente.");
+            }
         }
 
         return view('payment.create', compact('invoice', 'clients'));
