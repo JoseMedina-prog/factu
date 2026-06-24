@@ -360,7 +360,7 @@
                 </div>
                 <div class="p-6">
                     @if(($charts['status_distribution'] instanceof \Illuminate\Support\Collection ? $charts['status_distribution']->sum() : array_sum((array) ($charts['status_distribution'] ?? []))) > 0)
-                    <div id="statusChartContainer" class="relative h-48">
+                    <div style="position: relative; height: 192px; width: 100%;">
                         <canvas id="statusChart"></canvas>
                     </div>
                     <div class="mt-4 space-y-2">
@@ -461,7 +461,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const chartDefaults = {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: 2.5,
         plugins: {
             legend: {
                 display: false
@@ -563,7 +564,12 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     if (hasStatusData) {
-        new Chart(document.getElementById('statusChart'), {
+        const statusCanvas = document.getElementById('statusChart');
+        statusCanvas.parentNode.style.height = '192px';
+        statusCanvas.parentNode.style.width = '100%';
+        statusCanvas.style.maxHeight = '192px';
+
+        new Chart(statusCanvas, {
             type: 'doughnut',
             data: {
                 labels: Object.keys(statusData).map(k => k.charAt(0).toUpperCase() + k.slice(1)),
@@ -575,7 +581,8 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
+                maintainAspectRatio: true,
+                aspectRatio: 2,
                 cutout: '65%',
                 plugins: {
                     legend: {
