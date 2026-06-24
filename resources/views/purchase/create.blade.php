@@ -5,8 +5,21 @@
 @section('content')
 <x-page-header title="Nueva factura de compra" subtitle="Registra una factura recibida de un proveedor" :back="route('purchases.index')" />
 
+@php
+    $productsJson = $products->map(function ($p) {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'price' => (float) $p->cost,
+            'tax' => (float) $p->tax,
+            'unit' => $p->unit_of_measure,
+        ];
+    })->values()->toJson();
+@endphp
+
 <form action="{{ route('purchases.store') }}" method="POST"
-      x-data='purchaseForm(@json($products->map(fn ($p) => ["id" => $p->id, "name" => $p->name, "price" => (float) $p->cost, "tax" => (float) $p->tax, "unit" => $p->unit_of_measure])->values()))'>
+      x-data="purchaseForm({{ $productsJson }})">
+    @csrf
     @csrf
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
