@@ -360,7 +360,9 @@
                 </div>
                 <div class="p-6">
                     @if(($charts['status_distribution'] instanceof \Illuminate\Support\Collection ? $charts['status_distribution']->sum() : array_sum((array) ($charts['status_distribution'] ?? []))) > 0)
-                    <canvas id="statusChart" height="200"></canvas>
+                    <div id="statusChartContainer" class="relative h-48">
+                        <canvas id="statusChart"></canvas>
+                    </div>
                     <div class="mt-4 space-y-2">
                         @foreach(['draft' => 'Borrador', 'pending' => 'Pendiente', 'sent' => 'Enviada', 'approved' => 'Aprobada', 'rejected' => 'Rechazada', 'cancelled' => 'Cancelada'] as $key => $label)
                         @if($charts['status_distribution']->has($key) && $charts['status_distribution'][$key] > 0)
