@@ -75,7 +75,7 @@
 
         @can('viewAny', App\Models\Supplier::class)
             <a href="{{ route('suppliers.index') }}"
-               class="nav-link {{ request()->routeIs('suppliers.*') || request()->routeIs('purchases.*') ? 'nav-link-active' : '' }}">
+               class="nav-link {{ request()->routeIs('suppliers.*') ? 'nav-link-active' : '' }}">
                 <x-icon name="users" class="w-5 h-5" />
                 Proveedores
             </a>
