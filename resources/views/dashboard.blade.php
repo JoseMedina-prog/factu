@@ -108,7 +108,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-sm font-medium text-slate-500">Total Facturas</p>
-                    <p class="text-3xl font-bold text-slate-900 mt-2">{{ $stats['total'] ?? 0 }}</p>
+                    <p class="text-3xl font-bold text-slate-900 mt-2">{{ number_format($stats['total'] ?? 0, 0) }}</p>
                 </div>
                 <div class="stat-icon bg-blue-100">
                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
