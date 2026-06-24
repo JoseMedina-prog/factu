@@ -152,7 +152,7 @@
     </div>
 
     @if(isset($paymentStats))
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
         <div class="stat-card border-l-4 border-l-emerald-500">
             <div class="flex items-start justify-between">
                 <div>
@@ -171,7 +171,7 @@
         <div class="stat-card border-l-4 border-l-amber-500">
             <div class="flex items-start justify-between">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Por cobrar total</p>
+                    <p class="text-sm font-medium text-slate-500">Por cobrar</p>
                     <p class="text-2xl font-bold text-amber-600 mt-1">${{ number_format($accountsReceivable['totals']['total'] ?? 0, 0, ',', '.') }}</p>
                     <p class="text-xs text-slate-400 mt-0.5">{{ $accountsReceivable['invoice_count'] ?? 0 }} factura(s)</p>
                 </div>
@@ -205,6 +205,23 @@
                 </div>
             </div>
         </div>
+
+        @if(isset($payableStats))
+        <div class="stat-card border-l-4 border-l-rose-500">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Por pagar</p>
+                    <p class="text-2xl font-bold text-rose-600 mt-1">${{ number_format($payableStats['totals']['total'] ?? 0, 0, ',', '.') }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ $payableStats['invoice_count'] ?? 0 }} factura(s) a proveedores</p>
+                </div>
+                <div class="stat-icon bg-rose-100">
+                    <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
     @endif
 
@@ -355,46 +372,41 @@
 
         <div class="space-y-6">
             <div class="card">
-                <div class="px-6 py-5 border-b border-slate-100">
-                    <h2 class="text-lg font-semibold text-slate-900">Distribución</h2>
+                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-slate-900">Estado de facturas</h2>
+                    <a href="{{ route('invoices.index') }}" class="text-xs text-blue-600 hover:underline">Ver todas</a>
                 </div>
                 <div class="p-6">
                     @if(($charts['status_distribution'] instanceof \Illuminate\Support\Collection ? $charts['status_distribution']->sum() : array_sum((array) ($charts['status_distribution'] ?? []))) > 0)
-                    <div style="position: relative; height: 192px; width: 100%;">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                    <div class="mt-4 space-y-2">
-                        @foreach(['draft' => 'Borrador', 'pending' => 'Pendiente', 'sent' => 'Enviada', 'approved' => 'Aprobada', 'rejected' => 'Rechazada', 'cancelled' => 'Cancelada'] as $key => $label)
-                        @if($charts['status_distribution']->has($key) && $charts['status_distribution'][$key] > 0)
-                        <div class="flex items-center justify-between text-sm">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full @switch($key)
-                                    @case('draft') bg-amber-400 @break
-                                    @case('pending') bg-blue-400 @break
-                                    @case('sent') bg-green-400 @break
-                                    @case('approved') bg-green-600 @break
-                                    @case('rejected') bg-red-400 @break
-                                    @case('cancelled') bg-slate-400 @break
-                                    @default bg-slate-400
-                                @endswitch"></span>
-                                <span class="text-slate-600">{{ $label }}</span>
-                            </div>
-                            <span class="font-medium text-slate-900">{{ $charts['status_distribution'][$key] }}</span>
-                        </div>
-                        @endif
+                    <div class="space-y-3">
+                        @php
+                            $total = ($charts['status_distribution'] instanceof \Illuminate\Support\Collection) ? $charts['status_distribution']->sum() : array_sum((array) $charts['status_distribution']);
+                        @endphp
+                        @foreach(['draft' => ['label' => 'Borrador', 'color' => 'bg-amber-400'], 'pending' => ['label' => 'Pendiente', 'color' => 'bg-blue-400'], 'sent' => ['label' => 'Enviada', 'color' => 'bg-green-400'], 'approved' => ['label' => 'Aprobada', 'color' => 'bg-green-600'], 'rejected' => ['label' => 'Rechazada', 'color' => 'bg-red-400'], 'cancelled' => ['label' => 'Cancelada', 'color' => 'bg-slate-400']] as $key => $meta)
+                            @if(($charts['status_distribution']->has($key) && $charts['status_distribution'][$key] > 0) || (is_array($charts['status_distribution']) && ($charts['status_distribution'][$key] ?? 0) > 0))
+                                @php
+                                    $count = $charts['status_distribution']->has($key) ? $charts['status_distribution'][$key] : ($charts['status_distribution'][$key] ?? 0);
+                                    $pct = $total > 0 ? round(($count / $total) * 100) : 0;
+                                @endphp
+                                <div>
+                                    <div class="flex items-center justify-between text-sm mb-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full {{ $meta['color'] }}"></span>
+                                            <span class="text-slate-700">{{ $meta['label'] }}</span>
+                                        </div>
+                                        <span class="font-semibold text-slate-900">{{ $count }} <span class="text-xs text-slate-400 font-normal">({{ $pct }}%)</span></span>
+                                    </div>
+                                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="h-full {{ $meta['color'] }} rounded-full" style="width: {{ $pct }}%"></div>
+                                    </div>
+                                </div>
+                            @endif
                         @endforeach
                     </div>
                     @else
-                    <div class="h-48 flex items-center justify-center">
-                        <div class="text-center">
-                            <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
-                                </svg>
-                            </div>
-                            <p class="text-sm text-slate-500">Sin datos</p>
-                        </div>
+                    <div class="py-8 text-center">
+                        <p class="text-sm text-slate-500">Sin facturas aún</p>
+                        <a href="{{ route('invoices.create') }}" class="text-xs text-blue-600 hover:underline">Crear primera factura</a>
                     </div>
                     @endif
                 </div>
@@ -562,36 +574,6 @@ document.addEventListener('DOMContentLoaded', function() {
         rejected: '#ef4444',
         cancelled: '#94a3b8'
     };
-
-    if (hasStatusData) {
-        const statusCanvas = document.getElementById('statusChart');
-        statusCanvas.parentNode.style.height = '192px';
-        statusCanvas.parentNode.style.width = '100%';
-        statusCanvas.style.maxHeight = '192px';
-
-        new Chart(statusCanvas, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(statusData).map(k => k.charAt(0).toUpperCase() + k.slice(1)),
-                datasets: [{
-                    data: Object.values(statusData),
-                    backgroundColor: Object.keys(statusData).map(k => statusColors[k] || '#94a3b8'),
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2,
-                cutout: '65%',
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
-    }
 });
 </script>
 @endpush

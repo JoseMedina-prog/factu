@@ -10,8 +10,12 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Payment\AccountsReceivableController;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\Purchase\AccountsPayableController;
+use App\Http\Controllers\Purchase\PurchaseInvoiceController;
+use App\Http\Controllers\Purchase\PurchasePaymentController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Setting\SettingController;
+use App\Http\Controllers\Supplier\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -40,6 +44,21 @@ Route::middleware('auth')->group(function () {
 
         Route::get('accounts-receivable', [AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');
         Route::get('accounts-receivable/export', [AccountsReceivableController::class, 'export'])->name('accounts-receivable.export');
+
+        Route::resource('suppliers', SupplierController::class)->names('suppliers');
+
+        Route::resource('purchases', PurchaseInvoiceController::class)->names('purchases');
+        Route::post('purchases/{purchase}/cancel', [PurchaseInvoiceController::class, 'cancel'])->name('purchases.cancel');
+
+        Route::resource('purchase-payments', PurchasePaymentController::class)
+            ->except(['edit', 'update'])
+            ->parameters(['purchase-payments' => 'purchasePayment'])
+            ->names('purchase-payments');
+        Route::post('purchase-payments/{purchasePayment}/confirm', [PurchasePaymentController::class, 'confirm'])->name('purchase-payments.confirm');
+        Route::post('purchase-payments/{purchasePayment}/cancel', [PurchasePaymentController::class, 'cancel'])->name('purchase-payments.cancel');
+
+        Route::get('accounts-payable', [AccountsPayableController::class, 'index'])->name('accounts-payable.index');
+        Route::get('accounts-payable/export', [AccountsPayableController::class, 'export'])->name('accounts-payable.export');
 
         Route::prefix('inventory')->name('inventory.')->group(function () {
             Route::get('/', [InventoryMovementController::class, 'index'])->name('index');

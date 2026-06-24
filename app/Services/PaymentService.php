@@ -199,6 +199,8 @@ class PaymentService
             'total' => 0.0,
         ];
 
+        $byClient = [];
+
         foreach ($invoices as $invoice) {
             $isOverdue = $invoice->due_date->lt($asOf);
             $key = $isOverdue ? $invoice->agingBucket() : 'current';
@@ -208,13 +210,32 @@ class PaymentService
             $grouped[$key]->push($invoice);
             $totals[$key] += (float) $invoice->balance;
             $totals['total'] += (float) $invoice->balance;
+
+            $clientKey = $invoice->client_id;
+            if (!isset($byClient[$clientKey])) {
+                $byClient[$clientKey] = [
+                    'client' => $invoice->client,
+                    'total' => 0.0,
+                    'count' => 0,
+                    'overdue' => 0.0,
+                ];
+            }
+            $byClient[$clientKey]['total'] += (float) $invoice->balance;
+            $byClient[$clientKey]['count']++;
+            if ($isOverdue) {
+                $byClient[$clientKey]['overdue'] += (float) $invoice->balance;
+            }
         }
+
+        usort($byClient, fn ($a, $b) => $b['total'] <=> $a['total']);
 
         return [
             'groups' => $grouped,
             'totals' => $totals,
+            'by_client' => array_values($byClient),
             'as_of' => $asOf->toDateString(),
             'invoice_count' => $invoices->count(),
+            'client_count' => count($byClient),
         ];
     }
 

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Cuentas por cobrar')
+@section('title', 'Cuentas por pagar')
 
 @section('content')
-<x-page-header title="Cuentas por cobrar" subtitle="Saldo que tus clientes te deben, agrupado por antigüedad" :back="route('dashboard')">
+<x-page-header title="Cuentas por pagar" subtitle="Lo que debes a tus proveedores agrupado por antigüedad" :back="null">
     <x-slot:actions>
-        <a href="{{ route('accounts-receivable.export', ['as_of' => $asOf]) }}" class="btn btn-outline">
+        <a href="{{ route('accounts-payable.export', ['as_of' => $asOf]) }}" class="btn btn-outline">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
@@ -21,20 +21,16 @@
             <input type="date" name="as_of" value="{{ $asOf }}" class="input">
         </div>
         <button type="submit" class="btn btn-outline">Actualizar</button>
-        <div class="flex-1 text-right text-sm text-slate-500">
-            <strong class="text-slate-900">{{ $invoice_count ?? 0 }}</strong> factura(s) ·
-            <strong class="text-slate-900">{{ $client_count ?? 0 }}</strong> cliente(s) con saldo
-        </div>
     </form>
 </div>
 
 @php
     $buckets = [
-        'current' => ['label' => 'Por vencer', 'color' => 'emerald', 'icon' => 'check'],
-        '0-30' => ['label' => '0-30 días', 'color' => 'amber', 'icon' => 'clock'],
-        '31-60' => ['label' => '31-60 días', 'color' => 'orange', 'icon' => 'warning'],
-        '61-90' => ['label' => '61-90 días', 'color' => 'red', 'icon' => 'warning'],
-        '90+' => ['label' => 'Más de 90 días', 'color' => 'red', 'icon' => 'alert'],
+        'current' => ['label' => 'Por vencer', 'color' => 'emerald'],
+        '0-30' => ['label' => '0-30 días', 'color' => 'amber'],
+        '31-60' => ['label' => '31-60 días', 'color' => 'orange'],
+        '61-90' => ['label' => '61-90 días', 'color' => 'red'],
+        '90+' => ['label' => 'Más de 90 días', 'color' => 'red'],
     ];
 @endphp
 
@@ -61,19 +57,18 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
     <x-card class="lg:col-span-2">
         <div class="px-6 py-4 border-b border-slate-100">
-            <h3 class="font-semibold text-slate-900">Facturas pendientes de cobro</h3>
+            <h3 class="font-semibold text-slate-900">Facturas pendientes de pago</h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="table">
                 <thead class="bg-slate-50 text-xs uppercase text-slate-600">
                     <tr>
                         <th class="px-6 py-3 text-left">Factura</th>
-                        <th class="px-6 py-3 text-left">Cliente</th>
+                        <th class="px-6 py-3 text-left">Proveedor</th>
                         <th class="px-6 py-3 text-left">Vencimiento</th>
                         <th class="px-6 py-3 text-right">Días vencidos</th>
                         <th class="px-6 py-3 text-right">Saldo</th>
                         <th class="px-6 py-3 text-left">Cubo</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">
@@ -81,13 +76,10 @@
                         @foreach($invoices as $invoice)
                             <tr>
                                 <td class="px-6 py-4 font-mono text-xs">
-                                    <a href="{{ route('invoices.show', $invoice) }}" class="text-blue-600 hover:underline">{{ $invoice->number }}</a>
+                                    <a href="{{ route('purchases.show', $invoice) }}" class="text-blue-600 hover:underline">{{ $invoice->number }}</a>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <p class="font-medium">{{ $invoice->client->name ?? '—' }}</p>
-                                    @if($invoice->client?->phone)
-                                        <p class="text-xs text-slate-500">{{ $invoice->client->phone }}</p>
-                                    @endif
+                                    <a href="{{ route('suppliers.show', $invoice->supplier) }}" class="hover:text-primary-600">{{ $invoice->supplier?->name ?? '—' }}</a>
                                 </td>
                                 <td class="px-6 py-4">{{ $invoice->due_date->format('d/m/Y') }}</td>
                                 <td class="px-6 py-4 text-right">
@@ -106,17 +98,12 @@
                                     @endphp
                                     <x-badge :variant="$cubeColors[$bucket] ?? 'default'">{{ $buckets[$bucket]['label'] ?? $bucket }}</x-badge>
                                 </td>
-                                <td class="px-6 py-4 text-right">
-                                    @if($invoice->hasOutstandingBalance() && auth()->user()->can('create', App\Models\Payment::class))
-                                        <a href="{{ route('payments.create', ['invoice_id' => $invoice->id]) }}" class="text-xs text-blue-600 hover:underline">Registrar pago</a>
-                                    @endif
-                                </td>
                             </tr>
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-slate-500">
-                                No hay cuentas pendientes. ¡Todo al día!
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                                No tienes cuentas por pagar. ¡Estás al día con tus proveedores!
                             </td>
                         </tr>
                     @endforelse
@@ -124,9 +111,9 @@
                 @if(($totals['total'] ?? 0) > 0)
                     <tfoot class="bg-slate-50 font-bold">
                         <tr>
-                            <td colspan="4" class="px-6 py-3 text-right">Total por cobrar</td>
+                            <td colspan="4" class="px-6 py-3 text-right">Total por pagar</td>
                             <td class="px-6 py-3 text-right text-base">${{ number_format($totals['total'], 0, ',', '.') }}</td>
-                            <td colspan="2"></td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 @endif
@@ -136,21 +123,16 @@
 
     <x-card>
         <div class="px-6 py-4 border-b border-slate-100">
-            <h3 class="font-semibold text-slate-900">Por cliente</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Top deudores ordenado por saldo</p>
+            <h3 class="font-semibold text-slate-900">Por proveedor</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Top proveedores con saldo pendiente</p>
         </div>
         <div class="divide-y divide-slate-100">
-            @forelse($by_client ?? [] as $item)
-                <a href="{{ route('reports.client-statement', $item['client']) }}" class="block px-6 py-3 hover:bg-slate-50 transition">
+            @forelse($by_supplier as $item)
+                <a href="{{ route('suppliers.show', $item['supplier']) }}" class="block px-6 py-3 hover:bg-slate-50 transition">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <p class="font-medium text-slate-900 truncate">{{ $item['client']->name }}</p>
-                            <div class="flex items-center gap-2 mt-0.5">
-                                <span class="text-xs text-slate-500">{{ $item['count'] }} factura(s)</span>
-                                @if(($item['overdue'] ?? 0) > 0)
-                                    <span class="text-xs text-red-600 font-medium">· ${{ number_format($item['overdue'], 0, ',', '.') }} vencido</span>
-                                @endif
-                            </div>
+                            <p class="font-medium text-slate-900 truncate">{{ $item['supplier']->name }}</p>
+                            <p class="text-xs text-slate-500">{{ $item['count'] }} factura(s)</p>
                         </div>
                         <div class="text-right ml-3">
                             <p class="font-semibold text-amber-600">${{ number_format($item['total'], 0, ',', '.') }}</p>
@@ -159,27 +141,10 @@
                 </a>
             @empty
                 <div class="px-6 py-8 text-center text-sm text-slate-500">
-                    Sin clientes con saldo pendiente
+                    Sin proveedores con saldo pendiente
                 </div>
             @endforelse
         </div>
     </x-card>
 </div>
-
-@if(($totals['total'] ?? 0) > 0)
-<div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-    <h4 class="font-semibold text-amber-900 mb-2 flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        Cómo leer este reporte
-    </h4>
-    <ul class="text-sm text-amber-800 space-y-1">
-        <li>• <strong>Por vencer:</strong> facturas cuya fecha de vencimiento aún no llega. Se espera pago pronto.</li>
-        <li>• <strong>0-30 / 31-60 / 61-90:</strong> días transcurridos desde el vencimiento. A mayor antigüedad, mayor riesgo de impago.</li>
-        <li>• <strong>Más de 90 días:</strong> considera iniciar gestión de cobro formal o nota crédito por prescripción.</li>
-        <li>• <strong>Por cliente:</strong> prioriza la gestión sobre los de mayor saldo y mayor mora.</li>
-    </ul>
-</div>
-@endif
 @endsection

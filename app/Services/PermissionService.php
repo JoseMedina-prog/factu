@@ -47,6 +47,20 @@ class PermissionService
         'credit-notes.approve',
         'credit-notes.cancel',
 
+        'suppliers.view',
+        'suppliers.create',
+        'suppliers.update',
+        'suppliers.delete',
+
+        'purchases.view',
+        'purchases.create',
+        'purchases.update',
+        'purchases.cancel',
+
+        'payables.view',
+        'payables.create',
+        'payables.export',
+
         'reports.view',
         'reports.export',
 
@@ -79,6 +93,9 @@ class PermissionService
             'credit-notes.view', 'credit-notes.create', 'credit-notes.update', 'credit-notes.approve',
             'payments.view', 'payments.create', 'payments.confirm',
             'accounts-receivable.view',
+            'suppliers.view', 'suppliers.create', 'suppliers.update',
+            'purchases.view', 'purchases.create',
+            'payables.view', 'payables.create',
             'reports.view', 'reports.export',
             'settings.view',
         ]);
@@ -91,6 +108,9 @@ class PermissionService
             'credit-notes.view',
             'payments.view',
             'accounts-receivable.view',
+            'suppliers.view',
+            'purchases.view',
+            'payables.view',
             'reports.view',
         ]);
     }

@@ -73,6 +73,30 @@
             Inventario
         </a>
 
+        @can('viewAny', App\Models\Supplier::class)
+            <a href="{{ route('suppliers.index') }}"
+               class="nav-link {{ request()->routeIs('suppliers.*') || request()->routeIs('purchases.*') ? 'nav-link-active' : '' }}">
+                <x-icon name="users" class="w-5 h-5" />
+                Proveedores
+            </a>
+        @endcan
+
+        @can('viewAny', App\Models\PurchaseInvoice::class)
+            <a href="{{ route('purchases.index') }}"
+               class="nav-link {{ request()->routeIs('purchases.*') || request()->routeIs('purchase-payments.*') ? 'nav-link-active' : '' }}">
+                <x-icon name="invoice" class="w-5 h-5" />
+                Compras
+            </a>
+        @endcan
+
+        @can('viewAny', App\Models\PurchasePayment::class)
+            <a href="{{ route('accounts-payable.index') }}"
+               class="nav-link {{ request()->routeIs('accounts-payable.*') ? 'nav-link-active' : '' }}">
+                <x-icon name="invoice" class="w-5 h-5" />
+                Por pagar
+            </a>
+        @endcan
+
         <a href="{{ route('settings.index') }}"
            class="nav-link {{ request()->routeIs('settings.index') || request()->routeIs('settings.update') || request()->routeIs('settings.logo') ? 'nav-link-active' : '' }}"
            @if(request()->routeIs('settings.index') || request()->routeIs('settings.update') || request()->routeIs('settings.logo')) aria-current="page" @endif>

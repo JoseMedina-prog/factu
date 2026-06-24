@@ -14,7 +14,7 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, InvoiceService $invoiceService, NumberingService $numberingService, PaymentService $paymentService, \App\Services\InventoryService $inventoryService)
+    public function __invoke(Request $request, InvoiceService $invoiceService, NumberingService $numberingService, PaymentService $paymentService, \App\Services\InventoryService $inventoryService, \App\Services\SupplierService $supplierService)
     {
         $tenant = auth()->user()->tenant;
         $stats = $invoiceService->getInvoiceStats();
@@ -25,8 +25,9 @@ class DashboardController extends Controller
         $paymentStats = $paymentService->getStats($tenant?->id);
         $accountsReceivable = $tenant ? $paymentService->getAccountsReceivable($tenant->id) : null;
         $inventoryAlerts = $tenant ? $inventoryService->getInventoryValuation($tenant) : null;
+        $payableStats = $tenant ? $supplierService->getAccountsPayable($tenant->id) : null;
 
-        return view('dashboard', compact('stats', 'charts', 'activity', 'alerts', 'numberingAlerts', 'paymentStats', 'accountsReceivable', 'inventoryAlerts'));
+        return view('dashboard', compact('stats', 'charts', 'activity', 'alerts', 'numberingAlerts', 'paymentStats', 'accountsReceivable', 'inventoryAlerts', 'payableStats'));
     }
 
     private function getChartData(): array

@@ -41,6 +41,7 @@ class InventoryMovement extends Model
         'user_id',
         'invoice_id',
         'credit_note_id',
+        'purchase_invoice_id',
         'type',
         'quantity',
         'stock_before',
@@ -93,6 +94,11 @@ class InventoryMovement extends Model
     public function creditNote(): BelongsTo
     {
         return $this->belongsTo(CreditNote::class);
+    }
+
+    public function purchaseInvoice(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseInvoice::class);
     }
 
     public function scopeEntries(Builder $query): Builder

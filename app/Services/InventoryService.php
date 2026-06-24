@@ -103,13 +103,13 @@ class InventoryService
         return $results;
     }
 
-    public function registerEntry(Product $product, float $quantity, float $unitCost = null, ?User $user = null, ?string $reference = null, ?string $notes = null): InventoryMovement
+    public function registerEntry(Product $product, float $quantity, float $unitCost = null, ?User $user = null, ?string $reference = null, ?string $notes = null, ?\App\Models\PurchaseInvoice $purchaseInvoice = null): InventoryMovement
     {
         if ($quantity <= 0) {
             throw new \InvalidArgumentException('La cantidad debe ser mayor a cero.');
         }
 
-        return DB::transaction(function () use ($product, $quantity, $unitCost, $user, $reference, $notes) {
+        return DB::transaction(function () use ($product, $quantity, $unitCost, $user, $reference, $notes, $purchaseInvoice) {
             $locked = Product::lockForUpdate()->findOrFail($product->id);
 
             $stockBefore = (float) $locked->stock;
@@ -123,10 +123,11 @@ class InventoryService
                 stockBefore: $stockBefore,
                 stockAfter: $stockAfter,
                 unitCost: $effectiveCost,
-                reason: 'Entrada manual',
+                reason: $purchaseInvoice ? "Compra a proveedor - Factura {$purchaseInvoice->number}" : 'Entrada manual',
                 reference: $reference,
                 notes: $notes,
-                user: $user
+                user: $user,
+                purchaseInvoice: $purchaseInvoice
             );
 
             if ($unitCost !== null) {
@@ -307,7 +308,8 @@ class InventoryService
         ?string $notes = null,
         ?User $user = null,
         ?Invoice $invoice = null,
-        ?\App\Models\CreditNote $creditNote = null
+        ?\App\Models\CreditNote $creditNote = null,
+        ?\App\Models\PurchaseInvoice $purchaseInvoice = null
     ): InventoryMovement {
         $totalCost = abs($quantity) * $unitCost;
 
@@ -317,6 +319,7 @@ class InventoryService
             'user_id' => $user?->id,
             'invoice_id' => $invoice?->id,
             'credit_note_id' => $creditNote?->id,
+            'purchase_invoice_id' => $purchaseInvoice?->id,
             'type' => $type,
             'quantity' => $quantity,
             'stock_before' => $stockBefore,
